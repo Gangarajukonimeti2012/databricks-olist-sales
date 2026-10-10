@@ -1,0 +1,4 @@
+# Kaggle data is not committed: download it from
+# https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+data/
+.DS_Store

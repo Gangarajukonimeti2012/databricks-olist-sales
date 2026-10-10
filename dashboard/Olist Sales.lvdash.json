@@ -1,0 +1,469 @@
+{
+  "datasets": [
+    {
+      "name": "kpi",
+      "displayName": "KPI totals",
+      "queryLines": [
+        "SELECT SUM(price)                  AS revenue,\n",
+        "       COUNT(DISTINCT order_id)    AS orders,\n",
+        "       COUNT(DISTINCT customer_id) AS customers\n",
+        "FROM olist.gold.fact_orders\n"
+      ]
+    },
+    {
+      "name": "revenue_by_month",
+      "displayName": "Revenue by month",
+      "queryLines": [
+        "SELECT d.month_start, SUM(f.price) AS revenue\n",
+        "FROM olist.gold.fact_orders f\n",
+        "JOIN olist.gold.dim_date d ON f.order_date = d.order_date\n",
+        "GROUP BY d.month_start\n",
+        "ORDER BY d.month_start\n"
+      ]
+    },
+    {
+      "name": "top_categories",
+      "displayName": "Top 10 product categories",
+      "queryLines": [
+        "SELECT p.product_category, SUM(f.price) AS revenue\n",
+        "FROM olist.gold.fact_orders f\n",
+        "JOIN olist.gold.dim_product p ON f.product_id = p.product_id\n",
+        "GROUP BY p.product_category\n",
+        "ORDER BY revenue DESC\n",
+        "LIMIT 10\n"
+      ]
+    },
+    {
+      "name": "orders_by_state",
+      "displayName": "Orders by state",
+      "queryLines": [
+        "SELECT c.customer_state, COUNT(DISTINCT f.order_id) AS orders\n",
+        "FROM olist.gold.fact_orders f\n",
+        "JOIN olist.gold.dim_customer c ON f.customer_id = c.customer_id\n",
+        "GROUP BY c.customer_state\n",
+        "ORDER BY orders DESC\n"
+      ]
+    },
+    {
+      "name": "payment_types",
+      "displayName": "Payment type split",
+      "queryLines": [
+        "SELECT payment_type, SUM(payment_value) AS total_paid\n",
+        "FROM olist.gold.payments\n",
+        "GROUP BY payment_type\n"
+      ]
+    },
+    {
+      "name": "delivery_days",
+      "displayName": "Delivery days by month",
+      "queryLines": [
+        "SELECT d.month_start, AVG(f.delivery_days) AS avg_delivery_days\n",
+        "FROM olist.gold.fact_orders f\n",
+        "JOIN olist.gold.dim_date d ON f.order_date = d.order_date\n",
+        "GROUP BY d.month_start\n",
+        "ORDER BY d.month_start\n"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "c_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi",
+                  "fields": [
+                    {
+                      "name": "revenue",
+                      "expression": "`revenue`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "revenue",
+                  "displayName": "Total revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total revenue"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "c_orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi",
+                  "fields": [
+                    {
+                      "name": "orders",
+                      "expression": "`orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "orders",
+                  "displayName": "Total orders"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total orders"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "c_customers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi",
+                  "fields": [
+                    {
+                      "name": "customers",
+                      "expression": "`customers`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "customers",
+                  "displayName": "Total customers"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total customers"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "l_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "revenue_by_month",
+                  "fields": [
+                    {
+                      "name": "month_start",
+                      "expression": "`month_start`"
+                    },
+                    {
+                      "name": "revenue",
+                      "expression": "`revenue`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "month_start",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Month"
+                },
+                "y": {
+                  "fieldName": "revenue",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue by month"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "l_delivery",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "delivery_days",
+                  "fields": [
+                    {
+                      "name": "month_start",
+                      "expression": "`month_start`"
+                    },
+                    {
+                      "name": "avg_delivery_days",
+                      "expression": "`avg_delivery_days`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "month_start",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "Month"
+                },
+                "y": {
+                  "fieldName": "avg_delivery_days",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Average delivery days"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Average delivery days by month"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_categories",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "top_categories",
+                  "fields": [
+                    {
+                      "name": "revenue",
+                      "expression": "`revenue`"
+                    },
+                    {
+                      "name": "product_category",
+                      "expression": "`product_category`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "revenue",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Revenue"
+                },
+                "y": {
+                  "fieldName": "product_category",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  },
+                  "displayName": "Product category"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Top 10 product categories"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 2,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_states",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "orders_by_state",
+                  "fields": [
+                    {
+                      "name": "customer_state",
+                      "expression": "`customer_state`"
+                    },
+                    {
+                      "name": "orders",
+                      "expression": "`orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "customer_state",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "State"
+                },
+                "y": {
+                  "fieldName": "orders",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Orders"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Orders by customer state"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 8,
+            "width": 2,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "p_payments",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "payment_types",
+                  "fields": [
+                    {
+                      "name": "total_paid",
+                      "expression": "`total_paid`"
+                    },
+                    {
+                      "name": "payment_type",
+                      "expression": "`payment_type`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "total_paid",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Total paid"
+                },
+                "color": {
+                  "fieldName": "payment_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Payment type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Payment type split"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 8,
+            "width": 2,
+            "height": 6
+          }
+        }
+      ]
+    }
+  ]
+}
